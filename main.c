@@ -1,6 +1,7 @@
 #include "tokenizer.h"
 #include "embedding.h"
 #include "attention.h"
+#include "multihead_attention.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -30,14 +31,17 @@ int main() {
         }
     }
 
+    float *output = (float *) malloc(sequence_len * NDIM * sizeof(float));
+
+
+    // init_multihead_attention(NDIM, sequence_len, 5);
+    // multihead_attention(embeddings, output);
+
     float *Q = (float *) malloc(sequence_len * NDIM * sizeof(float));
     float *K = (float *) malloc(sequence_len * NDIM * sizeof(float));
     float *V = (float *) malloc(sequence_len * NDIM * sizeof(float));
-    float *output = (float *) malloc(sequence_len * NDIM * sizeof(float));
-
     compute_qkv(embeddings, Q, K, V);
     scaled_dot_product_attention(Q, K, V, output);
-    
     
     for(int i = 0; i < sequence_len; i++) {
         for(int j = 0; j < NDIM; j++) {
@@ -45,9 +49,22 @@ int main() {
         }
         printf("\n");
     }
+    int sentence_embedding[10] = {0};
+    for (int i = 0; i < 6 /* tokens */; i++) {
+        for (int j = 0; j < 10; j++) {
+            sentence_embedding[j] += output[i * 10 + j];
+        }
+    }
+    for (int j = 0; j < 10; j++) {
+        sentence_embedding[j] /= 6;
+    }
+
     
     printf("\n");
     char decode[256];
-    detokenize(&tokenizer, tokens, total_token, decode);
+    detokenize(&tokenizer, sentence_embedding, total_token, decode);
     printf("Decoded Tokens are: %s\n", decode);
 }
+
+
+    
